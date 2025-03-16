@@ -2,7 +2,6 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <algorithm>
 
 struct Note {
     int id;
@@ -12,15 +11,12 @@ struct Note {
 std::vector<Note> loadNotes() {
     std::vector<Note> notes;
     std::ifstream file("notes.txt");
-    if (!file) return notes;
-    
     Note note;
     while (file >> note.id) {
-        file.ignore(); 
+        file.ignore();
         std::getline(file, note.content);
         notes.push_back(note);
     }
-    file.close();
     return notes;
 }
 
@@ -29,18 +25,17 @@ void saveNotes(const std::vector<Note>& notes) {
     for (const auto& note : notes) {
         file << note.id << " " << note.content << std::endl;
     }
-    file.close();
 }
 
 void addNote() {
     std::vector<Note> notes = loadNotes();
     Note newNote;
     newNote.id = notes.empty() ? 1 : notes.back().id + 1;
-    
+
     std::cout << "Masukkan catatan: ";
     std::cin.ignore();
     std::getline(std::cin, newNote.content);
-    
+
     notes.push_back(newNote);
     saveNotes(notes);
     std::cout << "Catatan berhasil ditambahkan!\n";
@@ -62,11 +57,11 @@ void editNote() {
     int id;
     std::cout << "Masukkan ID catatan yang ingin diedit: ";
     std::cin >> id;
-    
+    std::cin.ignore();
+
     for (auto& note : notes) {
         if (note.id == id) {
             std::cout << "Masukkan catatan baru: ";
-            std::cin.ignore();
             std::getline(std::cin, note.content);
             saveNotes(notes);
             std::cout << "Catatan berhasil diperbarui!\n";
@@ -81,14 +76,19 @@ void deleteNote() {
     int id;
     std::cout << "Masukkan ID catatan yang ingin dihapus: ";
     std::cin >> id;
-    
-    auto it = std::remove_if(notes.begin(), notes.end(), [id](const Note& note) {
-        return note.id == id;
-    });
-    
-    if (it != notes.end()) {
-        notes.erase(it, notes.end());
-        saveNotes(notes);
+
+    std::vector<Note> newNotes;
+    bool found = false;
+    for (const auto& note : notes) {
+        if (note.id == id) {
+            found = true;
+        } else {
+            newNotes.push_back(note);
+        }
+    }
+
+    if (found) {
+        saveNotes(newNotes);
         std::cout << "Catatan berhasil dihapus!\n";
     } else {
         std::cout << "Catatan tidak ditemukan.\n";
@@ -116,6 +116,6 @@ int main() {
             default: std::cout << "Pilihan tidak valid.\n";
         }
     } while (choice != 5);
-    
+
     return 0;
 }
